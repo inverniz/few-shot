@@ -211,23 +211,30 @@ class KamonDataset(Dataset):
             """
         csv_filepath = None
         if subset == 'background':
-            csv_filepath = '/data/...'
+            csv_filepath = '/data/input/configs/input_files/training_input_classification_extended_v2.csv'
         elif subset == 'evaluation':
-            csv_filepath = '/data/...'
+            csv_filepath = '/data/input/configs/input_files/eval_input_classification_extended_v2.csv'
         else:
             raise(ValueError, 'subset must be one of (background, evaluation)')
         self.subset = subset
         # Create a dataframe to be consistent with other Datasets
-        self.df = pd.read_csv(csv_filepath, header = ['filepath', 'class_id'])
+        self.df = pd.read_csv(csv_filepath, names = ['filepath', 'class_id'])
         self.df = self.df.assign(id=self.df.index.values)
     
         # Create dicts
         self.datasetid_to_filepath = self.df.to_dict()['filepath']
         self.datasetid_to_class_id = self.df.to_dict()['class_id']
+        
+        # Setup transforms
+        self.transform = transforms.Compose([
+            transforms.Resize((84, 84)),
+            transforms.ToTensor()
+        ])
     def __len__(self):
         return len(self.df)
     
     def __getitem__(self, item):
         instance = Image.open(self.datasetid_to_filepath[item])
+        instance = self.transform(instance)
         label = self.datasetid_to_class_id[item]
         return instance, label

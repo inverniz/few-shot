@@ -49,7 +49,7 @@ elif args.dataset == 'miniImageNet':
     num_input_channels = 3
     drop_lr_every = 40
 elif args.dataset == 'kamon':
-    n_epochs = 80
+    n_epochs = 5
     dataset_class = KamonDataset
     num_input_channels = 3
     drop_lr_every = 40
