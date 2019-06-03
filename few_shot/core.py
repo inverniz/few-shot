@@ -3,7 +3,7 @@ from typing import List, Iterable, Callable, Tuple
 import numpy as np
 import torch
 
-from few_shot.metrics import categorical_accuracy
+from few_shot.metrics import categorical_accuracy, mean_precision, mean_recall, cohen_kappa
 from few_shot.callbacks import Callback
 
 
@@ -129,6 +129,8 @@ class EvaluateFewShot(Callback):
         logs = logs or {}
         seen = 0
         totals = {'loss': 0, self.metric_name: 0}
+        tot_y = np.array([], ndmin=1)
+        tot_y_pred = np.array([], ndmin=1)
         for batch_index, batch in enumerate(self.taskloader):
             x, y = self.prepare_batch(batch)
 
@@ -149,9 +151,19 @@ class EvaluateFewShot(Callback):
 
             totals['loss'] += loss.item() * y_pred.shape[0]
             totals[self.metric_name] += categorical_accuracy(y, y_pred) * y_pred.shape[0]
-
+            
+            tot_y = np.concatenate((tot_y, y.data.cpu().numpy()), axis=0)
+            tot_y_pred = np.concatenate((tot_y_pred, y_pred.argmax(dim=-1).data.cpu().numpy()), axis=0)
+            
+        totals['mean_precision'] = mean_precision(tot_y, tot_y_pred)
+        totals['mean_recall'] = mean_recall(tot_y, tot_y_pred)
+        totals['cohen_kappa'] = cohen_kappa(tot_y, tot_y_pred)
+        
         logs[self.prefix + 'loss'] = totals['loss'] / seen
         logs[self.metric_name] = totals[self.metric_name] / seen
+        logs['mean_precision'] = totals['mean_precision']
+        logs['mean_recall'] = totals['mean_recall']
+        logs['cohen_kappa'] = totals['cohen_kappa']
 
 
 def prepare_nshot_task(n: int, k: int, q: int) -> Callable:

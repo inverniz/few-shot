@@ -5,7 +5,7 @@ import argparse
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 
-from few_shot.datasets import OmniglotDataset, MiniImageNet
+from few_shot.datasets import OmniglotDataset, MiniImageNet, KamonDataset
 from few_shot.core import NShotTaskSampler, prepare_nshot_task, EvaluateFewShot
 from few_shot.matching import matching_net_episode
 from few_shot.train import fit
@@ -17,6 +17,7 @@ from config import PATH
 setup_dirs()
 assert torch.cuda.is_available()
 device = torch.device('cuda')
+torch.cuda.set_device(1)
 torch.backends.cudnn.benchmark = True
 
 
@@ -48,6 +49,11 @@ if args.dataset == 'omniglot':
 elif args.dataset == 'miniImageNet':
     n_epochs = 200
     dataset_class = MiniImageNet
+    num_input_channels = 3
+    lstm_input_size = 1600
+elif args.dataset == 'kamon':
+    n_epochs = 10
+    dataset_class = KamonDataset
     num_input_channels = 3
     lstm_input_size = 1600
 else:
