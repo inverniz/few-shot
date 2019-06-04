@@ -211,9 +211,9 @@ class KamonDataset(Dataset):
             """
         csv_filepath = None
         if subset == 'background':
-            csv_filepath = '/data/input/configs/input_files/training_input_classification_extended_v5.csv'
+            csv_filepath = '/data/input/configs/input_files/training_input_classification_extended_v6.csv'
         elif subset == 'evaluation':
-            csv_filepath = '/data/input/configs/input_files/eval_input_classification_extended_v5.csv'
+            csv_filepath = '/data/input/configs/input_files/eval_input_classification_extended_v6.csv'
         else:
             raise(ValueError, 'subset must be one of (background, evaluation)')
         self.subset = subset
@@ -227,7 +227,7 @@ class KamonDataset(Dataset):
         
         # Setup transforms
         self.transform = transforms.Compose([
-            transforms.Resize((100, 100)),
+            transforms.Resize((86, 86)),
             transforms.Grayscale(3),
             transforms.ToTensor()
         ])
