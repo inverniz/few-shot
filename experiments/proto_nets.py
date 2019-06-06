@@ -13,12 +13,13 @@ from few_shot.train import fit
 from few_shot.callbacks import *
 from few_shot.utils import setup_dirs
 from config import PATH
+import os 
 
+os.environ["CUDA_VISIBLE_DEVICES"]="1,2,3"
 
 setup_dirs()
 assert torch.cuda.is_available()
 device = torch.device('cuda')
-torch.cuda.set_device(1)
 torch.backends.cudnn.benchmark = True
 
 
@@ -83,6 +84,10 @@ evaluation_taskloader = DataLoader(
 # Model #
 #########
 model = get_few_shot_encoder(num_input_channels)
+
+if torch.cuda.device_count() > 1:
+  print("Let's use", torch.cuda.device_count(), "GPUs!")
+  model = torch.nn.DataParallel(model)
 model.to(device, dtype=torch.double)
 
 
