@@ -15,7 +15,7 @@ from few_shot.utils import setup_dirs
 from config import PATH
 import os 
 
-os.environ["CUDA_VISIBLE_DEVICES"]="1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2"
 
 setup_dirs()
 assert torch.cuda.is_available()
@@ -37,8 +37,8 @@ parser.add_argument('--q-train', default=5, type=int)
 parser.add_argument('--q-test', default=1, type=int)
 args = parser.parse_args()
 
-evaluation_episodes = 1000
-episodes_per_epoch = 100
+evaluation_episodes = 10
+episodes_per_epoch = 500
 
 if args.dataset == 'omniglot':
     n_epochs = 40
@@ -51,8 +51,13 @@ elif args.dataset == 'miniImageNet':
     num_input_channels = 3
     drop_lr_every = 40
 elif args.dataset == 'kamon':
-    n_epochs = 5
+    n_epochs = 1
     dataset_class = KamonDataset
+    num_input_channels = 3
+    drop_lr_every = 40
+elif args.dataset == 'logo':
+    n_epochs = 1
+    dataset_class = LogoDataset
     num_input_channels = 3
     drop_lr_every = 40
 else:
@@ -119,7 +124,7 @@ callbacks = [
         distance=args.distance
     ),
     ModelCheckpoint(
-        filepath=PATH + f'/models/proto_nets/{param_str}.pth',
+        filepath='/data/output/few-shot' + f'/models/proto_nets/{param_str}.pth',
         monitor=f'val_{args.n_test}-shot_{args.k_test}-way_acc'
     ),
     LearningRateScheduler(schedule=lr_schedule),
