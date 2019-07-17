@@ -5,7 +5,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 import argparse
 
-from few_shot.datasets import OmniglotDataset, MiniImageNet, KamonDataset
+from few_shot.datasets import OmniglotDataset, MiniImageNet, KamonDataset, LogoDataset
 from few_shot.models import get_few_shot_encoder
 from few_shot.core import NShotTaskSampler, EvaluateFewShot, prepare_nshot_task
 from few_shot.proto import proto_net_episode
@@ -15,7 +15,7 @@ from few_shot.utils import setup_dirs
 from config import PATH
 import os 
 
-os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2"
+os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 setup_dirs()
 assert torch.cuda.is_available()
@@ -38,7 +38,7 @@ parser.add_argument('--q-test', default=1, type=int)
 args = parser.parse_args()
 
 evaluation_episodes = 10
-episodes_per_epoch = 500
+episodes_per_epoch = 100
 
 if args.dataset == 'omniglot':
     n_epochs = 40
@@ -56,7 +56,7 @@ elif args.dataset == 'kamon':
     num_input_channels = 3
     drop_lr_every = 40
 elif args.dataset == 'logo':
-    n_epochs = 1
+    n_epochs = 80
     dataset_class = LogoDataset
     num_input_channels = 3
     drop_lr_every = 40

@@ -246,31 +246,31 @@ class LogoDataset(Dataset):
         """TBD
             """
         self.hdf5_filepath = '/data/input/logo/LLD-logo.hdf5'
-        self.hdf5_file = h5py.File(hdf5_filepath, 'r')
+        hdf5_file = h5py.File(self.hdf5_filepath, 'r')
         
         starting_index = -1
         ending_index = -1
         if subset == 'background':
             starting_index = 0
-            ending_index = 5000
+            ending_index = 20000
         elif subset == 'evaluation':
-            starting_index = 5000
-            ending_index = 8000
+            starting_index = 20000
+            ending_index = 30000
         else:
             raise(ValueError, 'subset must be one of (background, evaluation)')
         self.subset = subset
 
         # Create a dataframe to be consistent with other Datasets
         index = pd.Index(np.arange(0, ending_index-starting_index))
-        self.df = pd.DataFrame(index = index, names = ['image_id', 'class_id'])
+        self.df = pd.DataFrame(index = index, columns = ['image_id', 'class_id'])
         
         # simple way to load the complete dataset
         for i in index:
             image_id = i + starting_index
-            class_id = self.hdf5_file['labels/resnet/rc_64'][image_id]
+            class_id = hdf5_file['labels/resnet/rc_32'][image_id]
             self.df.loc[i, 'image_id'] = image_id
             self.df.loc[i, 'class_id'] = class_id
-        
+
         self.df = self.df.assign(id=self.df.index.values)
     
         # Create dicts
@@ -287,9 +287,10 @@ class LogoDataset(Dataset):
         return len(self.df)
     
     def __getitem__(self, item):
+        hdf5_file = h5py.File(self.hdf5_filepath, 'r')
         image_id = self.datasetid_to_image_id[item]
-        image_shape = self.hdf5_file['shapes'][image_id]
-        image = self.hdf5_file['data'][image_id, :, :image_shape[1], :image_shape[2]].astype(np.uint8)
+        image_shape = hdf5_file['shapes'][image_id]
+        image = hdf5_file['data'][image_id, :, :image_shape[1], :image_shape[2]].astype(np.uint8)
         instance = Image.fromarray(image.T)
         instance = self.transform(instance)
         label = self.datasetid_to_class_id[item]
