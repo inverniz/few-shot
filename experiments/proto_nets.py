@@ -5,7 +5,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 import argparse
 
-from few_shot.datasets import OmniglotDataset, MiniImageNet, KamonDataset, LogoDataset
+from few_shot.datasets import OmniglotDataset, MiniImageNet, KamonDataset, ImageNetKamonDataset, LogoDataset
 from few_shot.models import get_few_shot_encoder
 from few_shot.core import NShotTaskSampler, EvaluateFewShot, prepare_nshot_task
 from few_shot.proto import proto_net_episode
@@ -35,9 +35,10 @@ parser.add_argument('--k-train', default=60, type=int)
 parser.add_argument('--k-test', default=5, type=int)
 parser.add_argument('--q-train', default=5, type=int)
 parser.add_argument('--q-test', default=1, type=int)
+parser.add_argument('--pretrain', default=False, type=bool)
 args = parser.parse_args()
 
-evaluation_episodes = 10
+evaluation_episodes = 1000
 episodes_per_epoch = 100
 
 if args.dataset == 'omniglot':
@@ -51,8 +52,13 @@ elif args.dataset == 'miniImageNet':
     num_input_channels = 3
     drop_lr_every = 40
 elif args.dataset == 'kamon':
-    n_epochs = 1
+    n_epochs = 80
     dataset_class = KamonDataset
+    num_input_channels = 3
+    drop_lr_every = 40
+elif args.dataset == 'pretrainedKamon':
+    n_epochs = 80
+    dataset_class = ImageNetKamonDataset
     num_input_channels = 3
     drop_lr_every = 40
 elif args.dataset == 'logo':
@@ -65,7 +71,9 @@ else:
 
 param_str = f'{args.dataset}_nt={args.n_train}_kt={args.k_train}_qt={args.q_train}_' \
             f'nv={args.n_test}_kv={args.k_test}_qv={args.q_test}'
-
+if args.pretrain:
+    param_str = param_str + '_pretrained'
+    
 print(param_str)
 
 ###################
@@ -93,6 +101,12 @@ model = get_few_shot_encoder(num_input_channels)
 if torch.cuda.device_count() > 1:
   print("Let's use", torch.cuda.device_count(), "GPUs!")
   model = torch.nn.DataParallel(model)
+
+#adding pretraining
+if args.pretrain:
+    MODEL_PATH = '/data/output/few-shot/models/proto_nets/miniImageNet_nt=5_kt=20_qt=15_nv=5_kv=5_qv=1.pth'
+    model.load_state_dict(torch.load(MODEL_PATH))
+
 model.to(device, dtype=torch.double)
 
 

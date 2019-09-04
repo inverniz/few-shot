@@ -19,6 +19,11 @@ import os
 kamon_location = '/data/output/segmentation_extended/cropping/training/200018823'
 output_shape = (100, 100)
 
+cropping_factors = [0.95, 0.9, 0.85, 0.8, 0.75]
+
+for cropping_factor in cropping_factors:
+    os.makedirs(os.path.join(kamon_location, 'scaled_{}'.format(cropping_factor)), exist_ok=True)
+    
 print('Processing kamon dataset...')
 for img_path in os.listdir(kamon_location):
         if(os.path.isfile(os.path.join(kamon_location, img_path))):
@@ -26,7 +31,7 @@ for img_path in os.listdir(kamon_location):
             img_width = img.shape[0]
             img_height = img.shape[1]
             
-            cropping_factors = [0.9, 0.8]
+            cropping_factors = [0.95, 0.9, 0.85, 0.8, 0.75]
             for cropping_factor in cropping_factors:
                 new_img_width = cropping_factor*img_width
                 new_img_height = cropping_factor*img_height
